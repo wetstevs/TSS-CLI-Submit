@@ -20,17 +20,20 @@ ERR_MSG_BADPRJ = '''Invalid Argument for Project:
 DAY_DICT = {'monday' : 0, 'tuesday' : 1, 'wednesday' : 2, 
            'thursday' : 3, 'friday' : 4, 'saturday' : 5, 'sunday' : 6}
 
-DEFAULT_PRJ = 'vacation'
-
 TSS_URL = "http://intra.fry.com/tools/tss/xt_tss.asp"
 
 # parse the settings file ('projects.txt' in the same directory as the script)
 # for project values dictionary for values depending upon task
 projects = {}
+defaultPrj = None
 f = open('./projects.txt', 'r')
 for line in f:
-    # break the line up by | characters
     parts = line.split('|')
+
+    if parts[0].startswith('*'):
+        parts[0] = parts[0].lstrip('*')
+        defaultPrj = parts[0]
+
     projects[parts[0]] = {'taskID' : parts[1], 'taskName' : parts[2], 
                           'projectID' : parts[3], 'jobID' : parts[4], 
                           'catID' : parts[5], 'jobTypeID' : parts[6]}
@@ -76,7 +79,7 @@ if (args.project != None):
         print ERR_MSG_BADPRJ
         sys.exit(1)
 else:
-    project = projects.get(DEFAULT_PRJ)
+    project = projects.get(defaultPrj)
 
 # Check for the CLI "info" conditions (list and default), 
 # if detected, then do and exit
@@ -87,7 +90,7 @@ if (args.prjList):
 
 if (args.prjDefault):
     print 'Default Project:'
-    print '\t' + DEFAULT_PRJ
+    print '\t' + defaultPrj
     sys.exit(0)
 
 # Check to ensure that required arguments (hours & comment)
@@ -156,5 +159,4 @@ params = urllib.urlencode({'date' : formatDate, 'task_id' : project.get('taskID'
                            'tasknum' : '', 'comments' : args.comment,
                            'submitIsPending' : 'false', 'GO_add' : 'Submit', 
                            'tss_update' : '', 'tss_update_id' : ''})
-print params
-#response = urllib2.urlopen(TSS_URL, params)
+response = urllib2.urlopen(TSS_URL, params)
