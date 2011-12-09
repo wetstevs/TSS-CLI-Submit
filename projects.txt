@@ -1,0 +1,5 @@
+foci|51259|FOCI|1723|13486|2|242
+future|0|MS Admin|2417|12658|1|100
+vacation|0|Vacation|166|13457|92|154
+holiday|0||166|13457|92|156
+personal|0|sick|166|13457|92|155

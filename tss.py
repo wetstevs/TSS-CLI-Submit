@@ -1,6 +1,5 @@
 #!/Library/Frameworks/Python.framework/Versions/2.7/bin/python
 
-
 import argparse
 import sys
 import os
@@ -10,47 +9,41 @@ import urllib
 import urllib2
 from ntlm import HTTPNtlmAuthHandler
 
-
 # Constant definition
 ERR_MSG_BADDAY = '''Invalid Argument for Weekday:
-\tMust be Monday, Tuesday, Wednesday,
-\tThursday, Friday, Saturday or Sunday.'''
+    Must be Monday, Tuesday, Wednesday,
+    Thursday, Friday, Saturday or Sunday.'''
 
 ERR_MSG_BADPRJ = '''Invalid Argument for Project:
-\tUse --list argument to print valid project names.'''
+    Use --list argument to print valid project names.'''
 
-# constant dictionary to map day index to day of week name
 DAY_DICT = {'monday' : 0, 'tuesday' : 1, 'wednesday' : 2, 
            'thursday' : 3, 'friday' : 4, 'saturday' : 5, 'sunday' : 6}
 
-# Dictionary for values depending upon Task
-PRJ_DICT = {'foci' : {'taskID' : 51259, 'taskName' : 'FOCI', 
-                      'projectID' : 1723, 'jobID' : 13486, 
-                      'catID' : 2, 'jobTypeID' : 242},
-            'future' : {'taskID' : 0, 'taskName' : 'MS Admin', 
-                        'projectID' : 2417, 'jobID' : 12658, 
-                        'catID' : 1, 'jobTypeID' : 100},
-            'vacation' : {'taskID' : 0, 'taskName' : 'Vacation', 
-                          'projectID' : 166, 'jobID' : 13457, 
-                          'catID' : 92, 'jobTypeID' : 154},
-            'holiday' : {'taskID' : 0, 'taskName' : '', 
-                         'projectID' : 166, 'jobID' : 13457, 
-                         'catID' : 92, 'jobTypeID' : 156},
-            'personal' : {'taskID' : 0, 'taskName' : 'sick', 
-                          'projectID' : 166, 'jobID' : 13457, 
-                          'catID' : 92, 'jobTypeID' : 155}}
-
-DEFAULT_PRJ = 'foci'
+DEFAULT_PRJ = 'vacation'
 
 TSS_URL = "http://intra.fry.com/tools/tss/xt_tss.asp"
 
+# parse the settings file ('projects.txt' in the same directory as the script)
+# for project values dictionary for values depending upon task
+projects = {}
+f = open('./projects.txt', 'r')
+for line in f:
+    # break the line up by | characters
+    parts = line.split('|')
+    projects[parts[0]] = {'taskID' : parts[1], 'taskName' : parts[2], 
+                          'projectID' : parts[3], 'jobID' : parts[4], 
+                          'catID' : parts[5], 'jobTypeID' : parts[6]}
+f.close()
 
 # Parse the command-line arguments 
 parser = argparse.ArgumentParser(description="Submit hours to TSS")
 parser.add_argument("-d", "--day", dest="weekday", 
-                    help='Weekday to submit time for (Monday ... Sunday). If not provided, current date is assumed.')
+                    help='Weekday to submit time for (Monday ... Sunday). '
+                    'If not provided, current date is assumed.')
 parser.add_argument("-p", "--project", dest="project",
-                    help='Project name to submit time for. If not provided, default project is assumed.')
+                    help='Project name to submit time for. If not provided, ' 
+                    'default project is assumed.')
 parser.add_argument("-l", "--list", 
                     action="store_true", dest="prjList", default=False,
                     help="Print all valid project names.")
@@ -60,7 +53,8 @@ parser.add_argument("-dp", "--default",
 parser.add_argument('hours', type=int, nargs='?', 
                     help='Number of hours to submit. (Required for submission.)')
 parser.add_argument('comment', nargs='?', 
-                    help='Comment associated with hour submission. (Required for submission)')
+                    help='Comment associated with hour submission. (Required '
+                    'for submission)')
 args = parser.parse_args()
 
 # Check for CLI conditions & validity
@@ -75,20 +69,20 @@ if (args.weekday != None):
 
 project = None
 if (args.project != None):
-    if(PRJ_DICT.has_key((args.project).lower())):
-        project = PRJ_DICT.get((args.project).lower())
+    if(projects.has_key((args.project).lower())):
+        project = projects.get((args.project).lower())
     else:
         # Throw an exception and exit
         print ERR_MSG_BADPRJ
         sys.exit(1)
 else:
-    project = PRJ_DICT.get(DEFAULT_PRJ)
+    project = projects.get(DEFAULT_PRJ)
 
 # Check for the CLI "info" conditions (list and default), 
 # if detected, then do and exit
 if (args.prjList):
     print 'Valid list of Project Names:'
-    print '\t' + str(PRJ_DICT.keys())
+    print '\t' + str(projects.keys())
     sys.exit(0)
 
 if (args.prjDefault):
@@ -133,7 +127,9 @@ if (weekday != None):
     # then we're using what the user provided
     submissionDate = dayList[weekday]
 
-formatDate = str(submissionDate.month) + '/' + str(submissionDate.day) + '/' + str(submissionDate.year)
+formatDate = ''.join([str(submissionDate.month), '/', 
+                      str(submissionDate.day), '/', 
+                      str(submissionDate.year)])
 
 # Setup NTLM authenticated HTTP connection & submit hours
 user = 'fry\\' + os.environ.get('USER')
@@ -160,10 +156,5 @@ params = urllib.urlencode({'date' : formatDate, 'task_id' : project.get('taskID'
                            'tasknum' : '', 'comments' : args.comment,
                            'submitIsPending' : 'false', 'GO_add' : 'Submit', 
                            'tss_update' : '', 'tss_update_id' : ''})
-response = urllib2.urlopen(TSS_URL, params)
-
-
-
-
-
-
+print params
+#response = urllib2.urlopen(TSS_URL, params)
