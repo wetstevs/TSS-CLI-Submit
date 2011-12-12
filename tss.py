@@ -17,6 +17,21 @@ ERR_MSG_BADDAY = '''Invalid Argument for Weekday:
 ERR_MSG_BADPRJ = '''Invalid Argument for Project:
     Use --list argument to print valid project names.'''
 
+ERR_MSG_BADPRJPATH = ''' Invalid enviornment variable value for: 
+    PRJ_META_PATH
+    
+    Said variable should provide valid path to project metadata file.'''
+
+ERR_MSG_BADUSER = '''Invalid enviornment variable value for: 
+    USER
+    
+    Said variable should provide valid username.'''
+
+ERR_MSG_BADPASS = '''Invalid enviornment variable value for: 
+    ME_KEY
+    
+    Said variable should provide valid user password.'''
+
 DAY_DICT = {'monday' : 0, 'tuesday' : 1, 'wednesday' : 2, 
            'thursday' : 3, 'friday' : 4, 'saturday' : 5, 'sunday' : 6}
 
@@ -24,9 +39,14 @@ TSS_URL = "http://intra.fry.com/tools/tss/xt_tss.asp"
 
 # parse the settings file ('projects.txt' in the same directory as the script)
 # for project values dictionary for values depending upon task
+path = os.environ.get('PRJ_META_PATH')
+if (path == None):
+    print ERR_MSG_BADPRJPATH
+    sys.exit(1)
+
 projects = {}
 defaultPrj = None
-f = open('./projects.txt', 'r')
+f = open(path, 'r')
 for line in f:
     parts = line.split('|')
 
@@ -136,7 +156,15 @@ formatDate = ''.join([str(submissionDate.month), '/',
 
 # Setup NTLM authenticated HTTP connection & submit hours
 user = 'fry\\' + os.environ.get('USER')
+if (user == None):
+    print ERR_MSG_BADUSER
+    sys.exit(1)
+
 password = os.environ.get('ME_KEY')
+if (password == None):
+    print ERR_MSG_BADPASS
+    sys.exit(1)
+
 passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
 passman.add_password(None, TSS_URL, user, password)
 
