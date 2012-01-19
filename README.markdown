@@ -28,7 +28,6 @@ An example metadata file with two projects (one "holiday" the other - the defaul
 
 
 
-
 [ntlm]: http://code.google.com/p/python-ntlm/
 
 
