@@ -155,7 +155,7 @@ formatDate = ''.join([str(submissionDate.month), '/',
                       str(submissionDate.year)])
 
 # Setup NTLM authenticated HTTP connection & submit hours
-user = 'fry\\' + os.environ.get('USER')
+user = 'fry\\' + os.environ.get('DOMAIN_USER')
 if (user == None):
     print ERR_MSG_BADUSER
     sys.exit(1)
